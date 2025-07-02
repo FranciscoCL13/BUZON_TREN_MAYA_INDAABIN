@@ -1,0 +1,116 @@
+body {
+  background: url('Background.png') no-repeat center center fixed;
+  background-size: cover;
+}
+
+.logo {
+  /* position: absolute; */
+  /* left: 100px; */
+  width: 300px;
+  height: auto;
+  /* top: 110px; */
+}
+
+.wizard-steps {
+  margin-left: 5%;
+  margin-top: 150px;
+}
+
+.form-container {
+  max-width: 80%;
+  margin: 0px auto;
+  padding: 30px;
+}
+
+h2 {
+  text-align: left;
+  margin-bottom: 30px;
+}
+
+.form-group {
+  display: flex;
+  gap: 50px;
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-group .field {
+  flex: 1;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.btn2 {
+  width: 20%;
+  padding: 12px;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.form-inline-group {
+  display: flex;
+  gap: 50px;
+  align-items: flex-end;
+  /* Alinea los campos por la parte inferior */
+  flex-wrap: wrap;
+  /* Para que no se rompa en pantallas pequeñas */
+}
+
+.form-inline-group .field {
+  flex: 1;
+  /* Cada uno toma el mismo espacio */
+  min-width: 200px;
+  /* Puedes ajustar el mínimo */
+}
+
+.form-inline-group label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-inline-group input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 100px 0 100px;
+  /* Menos espacio abajo */
+}
+
+
+
+#sesion-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+#sesion-header span {
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.breadcrumb {
+  margin: 5px 100px 10px 100px;
+  /* Añade solo un poco de margen arriba */
+}

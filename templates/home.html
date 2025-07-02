@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HOME_INDAABIN</title>
+
+    <!----------------------------------------------CSS GOBIERNO------------------------------------------------->
+    <link href="https://framework-gb.cdn.gob.mx/gm/v4/image/favicon.ico" rel="shortcut icon">
+    <link href="https://framework-gb.cdn.gob.mx/gm/v4/css/main.css" rel="stylesheet">
+
+    <!-- CUSTOM CSS -->
+    <link href="{{ url_for('static', filename='css/home.css') }}" rel="stylesheet">
+
+    <!------------------------------------------ICONOS----------------------------------------------------------->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+
+<body>
+    <main class="page">
+        <div class="container">
+            <!-- Contenido -->
+            <div style="margin: auto;" class="header-container">
+                <a href="https://www.gob.mx/buengobierno" target="_blank">
+                    <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/f/fc/Buen_gobierno.svg"
+                        alt="Buen Gobierno">
+                </a>
+
+                <div id="sesion-header">
+                    <span id="usuarioRFC">USUARIO: {{ session['rfc'] }}</span>
+                    <button class="btn btn-danger btn-sm" onclick="cerrarSesion()">Cerrar sesión</button>
+                </div>
+            </div>
+            <br>
+            <!-- Breadcrumbs alineado con formulario -->
+            <ol style="margin: auto;" class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/home_buzon"><i class="icon icon-home"></i></a></li>
+                <li class="breadcrumb-item active" aria-current="page">Buzón de tareas</li>
+            </ol>
+
+            <div class="header-bar">
+                <h2>INICIO</h2>
+                <hr class="red" style="padding:0; margin-bottom:20px;">
+            </div>
+
+            <!--------------------------------------HOME: BOTONES---------------------------------------------------->
+            <div class="home-grid">
+                <button class="home-button" onclick="window.location.href='/buzon'">
+                    <i class="bi bi-mailbox2"></i>
+                    Buzón de tareas
+                </button>
+
+
+                <button class="home-button" onclick="window.location.href='/seguimientos'">
+                    <i class="bi bi-folder2-open"></i>
+                    Ir a Registros
+                </button>
+
+            </div>
+
+            <br>
+
+
+        </div>
+
+
+
+    </main>
+    <script>
+        async function cerrarSesion() {
+            await fetch("/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ salir: true })
+            });
+            window.location.href = "/";
+        }
+    </script>
+
+
+    <!-- JS -->
+    <script src="https://framework-gb.cdn.gob.mx/gm/v4/js/gobmx.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://framework-gb.cdn.gob.mx/gm/v4/css/main.css" rel="stylesheet">
+  <link href="https://framework-gb.cdn.gob.mx/gm/v4/image/favicon.ico" rel="shortcut icon">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style_login.css') }}">
+  <title>Inicio de Sesión</title>
+  <script src="/static/nodecfdi/nodecfdi.js"></script>
+</head>
+
+<body>
+  <div class="container" cols="12">
+    <a href="https://www.gob.mx/buengobierno" target="_blank">
+      <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/f/fc/Buen_gobierno.svg" alt="Buen Gobierno">
+    </a>
+    <hr class="red" style="margin:20px; padding:0;">
+    <br>
+
+    <div>
+      <h2>Acceso con e.firma</h2>
+    </div>
+    <br>
+
+    <!-- FORMULARIO -->
+    <form id="formulario" onsubmit="return false;" accept-charset="utf-8" autocomplete="off">
+      <div class="file-input-row">
+        <p>*Certificado (.cer):</p>
+        <div class="file-wrapper">
+          <span id="placeholder-cert">Ubicación del certificado</span>
+          <input type="file" name="certificado" id="cert-input" accept=".cer" required
+            onchange="document.getElementById('placeholder-cert').innerText = this.files[0]?.name || 'Ubicación del certificado';">
+          <button type="button" class="btn btn-secondary"
+            onclick="document.getElementById('cert-input').click()">Buscar</button>
+        </div>
+      </div>
+
+      <div class="file-input-row">
+        <p>*Clave privada (.key):</p>
+        <div class="file-wrapper">
+          <span id="placeholder-key">Ubicación de la llave privada</span>
+          <input type="file" name="llave_privada" id="key-input" accept=".key" required
+            onchange="document.getElementById('placeholder-key').innerText = this.files[0]?.name || 'Ubicación de la llave';">
+          <button type="button" class="btn btn-secondary"
+            onclick="document.getElementById('key-input').click()">Buscar</button>
+        </div>
+      </div>
+
+      <div class="contraseña">
+        <p>*Contraseña de clave privada:</p>
+        <input type="password" name="password" placeholder="Contraseña" required>
+        <br><br>
+      </div>
+
+      <div class="enviar_solicitud">
+        <button class="btn btn-primary" type="button" onclick="validarYAutenticar()">Iniciar sesión</button>
+      </div>
+      <br>
+    </form>
+
+    <!-- LOADER -->
+    <div id="loader-overlay" style="display:none;">
+      <div class="loader-container">
+        <img src="{{ url_for('static', filename='double-ring.gif') }}" alt="Cargando..." class="loader-gif">
+        <p>Cargando, gracias por su paciencia...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let sesion = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      inicia_sesion(null);
+    });
+
+    async function inicia_sesion(datos) {
+      const respuesta = await fetch("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: datos ? JSON.stringify(datos) : "{}"
+      });
+
+      sesion = await respuesta.json();
+
+      const loader = document.getElementById("loader-overlay");
+      if (loader) loader.style.display = "none";
+
+      if ("rfc" in sesion) {
+        window.location.href = "/home_buzon";
+      }
+    }
+
+    async function cierra_sesion() {
+      // aquí reutilizas inicia_sesion, que ahora ya envía la cookie
+      await inicia_sesion({ salir: true });
+      // después redirige al login
+      window.location.href = "/";
+    }
+
+    function validarYAutenticar() {
+      const formulario = document.getElementById('formulario');
+      if (formulario.reportValidity()) {
+        autentica(formulario);
+      }
+    }
+
+    async function autentica(forma) {
+      function cadena_binaria(arr) {
+        return Array.from(arr).map(byte => String.fromCharCode(byte)).join('');
+      }
+
+      try {
+        const certificado = cadena_binaria(new Uint8Array(await forma.certificado.files[0].arrayBuffer()));
+        const llave_privada = cadena_binaria(new Uint8Array(await forma.llave_privada.files[0].arrayBuffer()));
+        const fiel = credentials.Credential.create(certificado, llave_privada, forma.password.value);
+        const timestamp = Math.floor(Date.now() / 1000);
+        const cadena_original = `${timestamp}_${sesion.challenge}`;
+
+        const enviar = {
+          certificado: btoa(certificado),
+          timestamp: timestamp,
+          firma_cadena: btoa(fiel.sign(cadena_original))
+        };
+
+        const loader = document.getElementById("loader-overlay");
+        if (loader) loader.style.display = "block";
+
+        await inicia_sesion(enviar);
+      } catch (e) {
+        alert(`Se produjo un error inesperado: ${e.message}`);
+      }
+    }
+  </script>
+  {% if session_expired %}
+<script>
+  alert("Saliendo de sesión por inactividad");
+</script>
+{% endif %}
+
+
+  <script src="https://framework-gb.cdn.gob.mx/gm/v4/js/gobmx.js"></script>
+</body>
+
+</html>

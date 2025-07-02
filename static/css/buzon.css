@@ -1,0 +1,106 @@
+body {
+  background: url(Background.png) no-repeat center center fixed;
+  background-size: cover;
+}
+
+.home-button:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.home-button i {
+  font-size: 40px;
+  margin-bottom: 10px;
+  transition: transform 0.3s;
+}
+
+.home-button:hover i {
+  transform: scale(1.2);
+}
+
+.logout-button {
+  position: relative;
+  margin-left: 670px;
+  left: 4px;
+  z-index: 1000;
+}
+
+.logo {
+  width: 250px;
+  height: auto;
+  margin-top: 20px;
+}
+
+#home-button {
+  position: relative;
+  margin-left: 730px;
+  left: 4px;
+  z-index: 1000;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 100px 0 100px;
+  /* Menos espacio abajo */
+}
+
+
+
+#sesion-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+#sesion-header span {
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.breadcrumb {
+  margin: 5px 100px 10px 100px;
+  /* Añade solo un poco de margen arriba */
+}
+
+/*-----------------------------------------------TABLA--------------------------------------------------*/
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  font-size: 16px;
+  background-color: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+thead {
+  background-color: #691C32;
+  color: white;
+}
+
+th,
+td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+td a {
+  padding: 6px 12px;
+  background-color: #10312B;
+  color: white;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+td a:hover {
+  background-color: #235B4E;
+}

@@ -1,0 +1,121 @@
+body {
+    background: url(Background.png) no-repeat center center fixed;
+    background-size: cover;
+}
+
+.home-button:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.home-button i {
+    font-size: 40px;
+    margin-bottom: 10px;
+    transition: transform 0.3s;
+}
+
+.home-button:hover i {
+    transform: scale(1.2);
+}
+
+.logout-button {
+    position: relative;
+    margin-left: 670px;
+    left: 4px;
+    z-index: 1000;
+}
+
+.logo {
+    width: 250px;
+    height: auto;
+    margin-top: 20px;
+}
+
+#home-button {
+    position: relative;
+    margin-left: 730px;
+    left: 4px;
+    z-index: 1000;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 100px 0 100px;
+    /* Menos espacio abajo */
+}
+
+
+
+#sesion-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#sesion-header span {
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.breadcrumb {
+    margin: 5px 100px 10px 100px;
+    /* Añade solo un poco de margen arriba */
+}
+
+.form-container {
+    max-width: 80%;
+    margin: 0px auto;
+    padding: 30px;
+}
+
+
+/* TABLA*/
+
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: sans-serif;
+  table-layout: fixed; /* <-- Distribuye mejor las columnas */
+  word-wrap: break-word;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 10px;
+  text-align: left;
+  vertical-align: top;
+  font-size: 14px;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+th {
+  background-color: #f3f3f3;
+  font-weight: bold;
+}
+
+pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-width: 300px;
+}
+td pre {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 250px;
+  cursor: pointer;
+}
+
+td pre::after {
+  content: attr(title);
+  display: none;
+}
+
+td pre:hover::after {
+  display: block;
+}

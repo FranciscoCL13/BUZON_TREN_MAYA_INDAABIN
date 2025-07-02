@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Firmado de Emisión Avalúo</title>
+    <!----------------------------------------------CSS GOBIERNO------------------------------------------------->
+    <link href="https://framework-gb.cdn.gob.mx/gm/v4/image/favicon.ico" rel="shortcut icon">
+    <link href="https://framework-gb.cdn.gob.mx/gm/v4/css/main.css" rel="stylesheet">
+    <!--CSS-->
+    <link href="{{ url_for('static', filename='css/firmadoEmisionAvaluo.css') }}" rel="stylesheet">
+    <!-- <link href="../static/css/firmadoEmisionAvaluo.css" rel="stylesheet"> -->
+    <!------------------------------------------ICONOS----------------------------------------------------------->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="form-container">
+        <!-- LOGO Y USER-->
+        <div style="margin: auto;" class="header-container">
+            <a href="https://www.gob.mx/buengobierno" target="_blank">
+                <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/f/fc/Buen_gobierno.svg"
+                    alt="Buen Gobierno">
+            </a>
+
+            <div id="sesion-header">
+                <span id="usuarioRFC">USUARIO: USUARIO123</span>
+                <button class="btn btn-danger btn-sm" onclick="cerrarSesion()">Cerrar sesión</button>
+            </div>
+        </div>
+        <br>
+        <!-- Breadcrumbs alineado con formulario -->
+        <ol style="margin: auto;" class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/home_buzon"><i class="icon icon-home"></i></a></li>
+            <li class="breadcrumb-item"><a href="/buzon">buzón de tareas</a></li>
+
+            <li class="breadcrumb-item active" aria-current="page">Resumen emisión</li>
+        </ol>
+
+        <!-- Paso 2: Resumen -->
+
+        <!-- OMITIDO: HEAD, LOGO, SESIÓN, BREADCRUMBS -->
+
+
+        <div id="resumen">
+            <h3>Emisión del Avalúo Maestro</h3>
+            <hr class="red" style="padding:0; margin-bottom:20px;">
+            <p><strong>Clave de solicitud:</strong> <span id="res-clave-solicitud"></span></p>
+            <p><strong>Servidor:</strong> <span id="res-servidor"></span></p>
+            <p><strong>Valor terreno:</strong> <span id="res-valor-terreno"></span></p>
+            <p><strong>Perito avalúo:</strong> <span id="res-perito-avaluo"></span></p>
+            <p><strong>Superficie metros:</strong> <span id="res-superficie-metros"></span></p>
+            <p><strong>Clave avalúo maestro:</strong> <span id="res-clave-avaluo-maestro"></span></p>
+            <p><strong>Uso terreno:</strong> <span id="res-uso-terreno"></span></p>
+            <p><strong>Archivo avalúo:</strong> <span id="res-archivo-avaluo"></span></p>
+        </div>
+
+
+        <br>
+        <div id="firma" style="margin-bottom: 30px;">
+            <button type="button" class="btn btn-primary" onclick="abrirModal()">Firmar</button>
+        </div>
+
+        <!-- MODAL DE FIRMA -->
+        <div id="modalFirma" class="modal" tabindex="-1" style="display:none;">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h4 class="modal-title">Firma de documentos</h4>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="field">
+                            <label for="cert">Certificado (.cer):</label>
+                            <input type="file" id="cert" accept=".cer" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="key">Llave privada (.key):</label>
+                            <input type="file" id="key" accept=".key" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="password">Contraseña de la llave:</label>
+                            <input type="password" id="password" required>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="aceptoCampos" required>
+                                Acepto que he revisado correctamente los campos y documentos.
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                        <button class="btn btn-primary" onclick="firmar()">Firmar</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- SCRIPT DE FIRMA -->
+        <script src="/static/nodecfdi/nodecfdi.js"></script>
+        <script>
+            function abrirModal() {
+                document.getElementById('modalFirma').style.display = 'block';
+            }
+
+            function cerrarModal() {
+                document.getElementById('modalFirma').style.display = 'none';
+            }
+
+            window.onclick = function (event) {
+                const modal = document.getElementById('modalFirma');
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            }
+
+            // Leer datos de sessionStorage según nombres correctos y actuales
+            const claveSolicitud = sessionStorage.getItem("clave_solicitud") || "";
+            const servidor = sessionStorage.getItem("servidor") || "";
+            const valorTerreno = sessionStorage.getItem("valor_terreno") || "";
+            const peritoAvaluo = sessionStorage.getItem("perito_avaluo") || "";
+            const superficieMetros = sessionStorage.getItem("superficie_metros") || "";
+            const claveAvaluoMaestro = sessionStorage.getItem("clave_avaluo_maestro") || "";
+            const usoTerreno = sessionStorage.getItem("uso_terreno") || "";
+            const archivoAvaluo = sessionStorage.getItem("archivoNombre") || "";
+            const hashArchivo = sessionStorage.getItem("archivoHash") || "";
+
+
+        // Actualizar contenido visual de resumen
+        document.getElementById('res-clave-solicitud').textContent = claveSolicitud;
+        document.getElementById('res-servidor').textContent = servidor;
+        document.getElementById('res-valor-terreno').textContent = valorTerreno;
+        document.getElementById('res-perito-avaluo').textContent = peritoAvaluo;
+        document.getElementById('res-superficie-metros').textContent = superficieMetros;
+        document.getElementById('res-clave-avaluo-maestro').textContent = claveAvaluoMaestro;
+        document.getElementById('res-uso-terreno').textContent = usoTerreno;
+        document.getElementById('res-archivo-avaluo').textContent = archivoAvaluo;
+
+            function arrayToString(buffer) {
+                return Array.from(new Uint8Array(buffer)).map(b => String.fromCharCode(b)).join('');
+            }
+
+            async function firmar() {
+                try {
+                    const certFile = document.getElementById("cert").files[0];
+                    const keyFile = document.getElementById("key").files[0];
+                    const password = document.getElementById("password").value;
+
+                    if (!certFile || !keyFile || !password) {
+                        alert("Por favor, proporciona el certificado, la llave y la contraseña.");
+                        return;
+                    }
+
+                    const certBin = await certFile.arrayBuffer();
+                    const keyBin = await keyFile.arrayBuffer();
+
+                    const fiel = credentials.Credential.create(
+                        arrayToString(certBin),
+                        arrayToString(keyBin),
+                        password
+                    );
+
+                    const rfcFirmante = fiel.rfc();
+                    const nombreFirmante = fiel.legalName();
+
+                    const normaliza = (t) => t ? t.replace(/[\r\n]+/g, ' ').replace(/[–—]/g, '-').trim() : '';
+                    const fechaISO = new Date().toISOString();
+
+                const cadena = [
+                    `ClaveSolicitud:"${normaliza(claveSolicitud)}"`,
+                    `Servidor:"${normaliza(servidor)}"`,
+                    `Fuente:"${normaliza(valorTerreno)}"`,
+                    `Costo:"${normaliza(peritoAvaluo)}"`,
+                    `FechaPago:"${normaliza(superficieMetros)}"`,
+                    `ComprobanteNumero:"${normaliza(claveAvaluoMaestro)}"`,
+                    `CLCNúmero:"${normaliza(usoTerreno)}"`,
+                    `Archivo:"${normaliza(archivoAvaluo)}"`,
+                    `HASH:"${hashArchivo}"`,
+                    `Fecha:"${fechaISO}"`,
+                    `RFC:"${rfcFirmante}"`
+                ].join(' | ');
+
+                    const firma = btoa(fiel.sign(cadena));
+
+                    // Enviar datos al backend
+                const formData = new FormData();
+                formData.append("clave_solicitud", claveSolicitud);
+                formData.append("servidor", servidor);
+                formData.append("valor_terreno", valorTerreno);
+                formData.append("perito_avaluo", peritoAvaluo);
+                formData.append("superficie_metros", superficieMetros);
+                formData.append("clave_avaluo_maestro", claveAvaluoMaestro);
+                formData.append("uso_terreno", usoTerreno);
+                formData.append("archivo_avaluo", archivoAvaluo);
+                formData.append("rfc_firmante", rfcFirmante);
+                formData.append("firma_digital", firma);
+                formData.append("fecha_firmada", fechaISO);
+                formData.append("cadena_original", cadena);
+
+
+                    const res = await fetch("/emisionAvaluo/firmado", {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.message);
+
+                    // Guardar datos firmados para el resumen
+                    sessionStorage.setItem("rfcFirmante", rfcFirmante);
+                    sessionStorage.setItem("nombreFirmante", nombreFirmante);
+                    sessionStorage.setItem("cadenaFirmada", cadena);
+                    sessionStorage.setItem("firmaDigital", firma);
+
+                    // Redirigir al resumen
+                    window.location.href = "/resumen_firma/" + encodeURIComponent(claveSolicitud);
+
+
+                } catch (e) {
+                    alert("Error al firmar: " + e.message);
+                }
+            }
+        </script>
+
+        <!-- JS -->
+        <script src="https://framework-gb.cdn.gob.mx/gm/v4/js/gobmx.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Buzón de Tareas</title>
+</head>
+<body>
+    <h1>Buzón de Tareas</h1>
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Id de la tarea</th>
+                <th>Clave de solicitud</th>
+                <th>Fecha de asignación de tarea</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tarea in tareas %}
+            <tr>
+                <td>{{ tarea.id }}</td>
+                <td>{{ tarea.clave }}</td>
+                <td>{{ tarea.fecha_firmada }}</td>
+                <td>
+                    <a href="{{ url_for('emisionAvaluo', clave_solicitud=tarea.clave) }}">
+                        Ir a Formulario
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3">No hay tareas registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <a href="{{ url_for('home') }}">Volver a home</a>
+    <script src="https://framework-gb.cdn.gob.mx/gm/v4/js/gobmx.js"></script>
+</body>
+</html>

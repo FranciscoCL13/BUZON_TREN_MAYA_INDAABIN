@@ -1,0 +1,98 @@
+body {
+    margin: 0;
+    font-family: Noto Sans, sans-serif;
+  }
+  
+  /* Ahora visible al inicio */
+  .logo {
+    width: 200px;
+    padding-top: 22px;
+    /* top: 0; */
+    /* left: 10; */
+    /* padding: 0rem 8.6%; */
+    display: flex;
+    justify-content: space-between;
+    align-items: left;
+  }
+
+  #fuera {
+    text-align: left;
+    margin-left: 0;
+  }
+  
+  #fuera p,
+  #fuera input,
+  #fuera button {
+    display: block;
+    margin-bottom: 10px;
+    margin: 0 0 4px 0;
+  }
+
+  h2{
+    margin-top:0;
+  }
+
+  p{
+    font-weight: bold;
+  }
+
+  .file-input-row {
+    margin-bottom: 16px;
+  }
+
+  .file-wrapper{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+
+  /*Placeholder estilo rectángulo*/
+  .file-wrapper span{
+    flex-grow:1;
+    display:block;
+    position:relative;
+    padding:8px 12px;
+    background-color:#eeeeee;
+    border: 1px solid #e7e7e7;
+    border-radius:5px;
+    font-size:16;
+    color:#b8b8b8;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    cursor:text;
+    max-width: 40%;
+  }
+
+  /*Ocultar imput real*/
+  .file-wrapper input[type="file"]{
+    display:none !important;
+  }
+
+  /*---------------------------LOADER----------------------------*/
+  #loader-overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    background-color:rgba(0,0,0,0.6); /*Obscurece la pantalla*/
+    display:none; /*Oculto por defecto*/
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+  }
+
+  .loader-container{
+    text-align:center;
+    color:white;
+  }
+
+  .loader-gif{
+    width:80px;
+    height:80px;
+    margin-bottom:10px;
+  }
+
+  .enviar_solicitud{
+    padding-left:35%;
+  }

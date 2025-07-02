@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Buzón de Tareas</title>
+
+    <!----------------------------------------------CSS GOBIERNO------------------------------------------------->
+    <link href="https://framework-gb.cdn.gob.mx/gm/v4/image/favicon.ico" rel="shortcut icon">
+    <link href="https://framework-gb.cdn.gob.mx/gm/v4/css/main.css" rel="stylesheet">
+
+    <!-- CUSTOM CSS -->
+    <link href="{{ url_for('static', filename='css/buzon.css') }}" rel="stylesheet">
+
+    <!------------------------------------------ICONOS----------------------------------------------------------->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+
+<body>
+
+
+    <!-- FIN DE CONTROLES INICIALES-->
+    <main class="page">
+        <div class="container">
+            
+                <div style="margin: auto;" class="header-container">
+                    <a href="https://www.gob.mx/buengobierno" target="_blank">
+                        <img class="logo" src="https://upload.wikimedia.org/wikipedia/commons/f/fc/Buen_gobierno.svg"
+                            alt="Buen Gobierno">
+                    </a>
+
+                    <div id="sesion-header">
+                        <span id="usuarioRFC">USUARIO: USUARIO123</span>
+                        <button class="btn btn-danger btn-sm" onclick="cerrarSesion()">Cerrar sesión</button>
+                    </div>
+                </div>
+                <br>
+                <!-- Breadcrumbs alineado con formulario -->
+                <ol style="margin: auto;" class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/home_buzon"><i class="icon icon-home"></i></a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Buzón de tareas</li>
+                </ol>
+<!-- FIN DE BREADCIMS INICIO DE TABLA-->
+            
+            <div class="header-bar">
+                <h2>Buzón de Tareas</h2>
+                <hr class="red" style="padding:0; margin-bottom:20px;">
+                <br><br>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Id de tarea</th>
+                      
+                            <th>Clave de solicitud</th>
+                            <th>Fecha de asignación</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tarea in tareas %}
+                        <tr>
+                            <td>{{ tarea.id }}</td>
+  
+                            <td>{{ tarea.clave }}</td>
+                            <td>{{ tarea.fecha_firmada }}</td>
+                            <td>
+                                <a href="{{ url_for('emisionAvaluo', clave_solicitud=tarea.clave) }}">
+                                    Ir a Formulario
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3">No hay tareas registradas.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <br>
+
+                <br>
+            </div>
+    </main>
+
+    <!-- JS -->
+    <script src="https://framework-gb.cdn.gob.mx/gm/v4/js/gobmx.js"></script>
+</body>
+
+</html>
