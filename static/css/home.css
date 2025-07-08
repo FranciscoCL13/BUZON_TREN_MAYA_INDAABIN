@@ -1,146 +1,150 @@
 body {
-      background: url(Background.png) no-repeat center center fixed;
-      background-size: cover;
-    }
-
-    .home-grid {
-      
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-     
-      margin-top: 60px;
-    display: flex;
-    justify-content: center;
-    gap: 20%;
-    flex-wrap: wrap;
-    margin: 40px auto;
-    }
-
-    .home-button {
-      background: linear-gradient(145deg, #10312B, #235B4E);
-      color: white;
-      border: none;
-      border-radius: 15px;
-      padding: 40px 20px;
-      text-align: center;
-      font-weight: bold;
-      font-size: 28px;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      align-items:center;
-      flex-direction: column;
-      justify-content: center;
-      width: 350px;
-        height: 200px;
-        display: flex;
-        gap: 10px;
-    }
-
-    .home-button:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    }
-
-    .home-button i {
-      font-size: 40px;
-      margin-bottom: 10px;
-      transition: transform 0.3s;
-    }
-
-    .home-button:hover i {
-      transform: scale(1.2);
-    }
-
-    @media screen and (max-width: 600px) {
-      .home-button {
-        padding: 30px 15px;
-        font-size: 16px;
-      }
-
-      .home-button i {
-        font-size: 32px;
-      }
-    }
-
-    .header-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 20px 100px 0 100px; /* Menos espacio abajo */
-    }
-
-    .logo {
-      width: 300px;
-      height: auto;
-    }
-
-    #sesion-header {
-      display:flex;
-      align-items: center;
-      gap: 15px;
-      position: relative;
-      top: 60px;
-    }
-
-    #sesion-header span {
-      font-weight: bold;
-      white-space: nowrap;
-    }
-
-    .breadcrumb {
-  margin: 5px 100px 10px 100px; /* Añade solo un poco de margen arriba */
+  background: url(Background.png) no-repeat center center fixed;
+  background-size: cover;
 }
 
-    .container {
-      margin: 0 100px;
-    }
+.home-grid {
 
-    .well {
-      background-color: #f3f3f3;
-      padding: 20px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      margin-top: 20px;
-    }
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 
-    .well p {
-      margin: 10px 0;
-      font-size: 16px;
-    }
+  margin-top: 60px;
+  display: flex;
+  justify-content: center;
+  gap: 20%;
+  flex-wrap: wrap;
+  margin: 40px auto;
+}
 
-    .well strong {
-      color: #333;
-    }
+.home-button {
+  background: linear-gradient(145deg, #10312B, #235B4E);
+  color: white;
+  border: none;
+  border-radius: 15px;
+  padding: 40px 20px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 28px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  width: 350px;
+  height: 200px;
+  display: flex;
+  gap: 10px;
+}
 
-    h2 {
-      margin-top: 10px;
-      font-weight: bold;
-    }
+.home-button:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
 
-    h3 {
-    margin-top: 0px; /* o incluso 5px si lo quieres más pegado */
-    font-weight: bold;
-    }
+.home-button i {
+  font-size: 40px;
+  margin-bottom: 10px;
+  transition: transform 0.3s;
+}
 
-    .btn-modal {
-      margin-top: 30px;
-      margin-bottom: 40px;
-    }
+.home-button:hover i {
+  transform: scale(1.2);
+}
 
-    @media (max-width: 768px) {
-      .header-container {
-        flex-direction: column;
-        align-items: flex-start;
-        margin: 20px;
-      }
+@media screen and (max-width: 600px) {
+  .home-button {
+    padding: 30px 15px;
+    font-size: 16px;
+  }
 
-      .container, .breadcrumb {
-        margin: 0 20px;
-      }
+  .home-button i {
+    font-size: 32px;
+  }
+}
 
-      #sesion-header {
-        flex-direction: column;
-        align-items: flex-start;
-        margin-top: 10px;
-      }
-    }
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 100px 0 100px;
+  /* Menos espacio abajo */
+}
+
+.logo {
+  width: 300px;
+  height: auto;
+}
+
+#sesion-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  position: relative;
+  top: 60px;
+}
+
+#sesion-header span {
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.breadcrumb {
+  margin: 5px 100px 10px 100px;
+  /* Añade solo un poco de margen arriba */
+}
+
+.container {
+  margin: 0 100px;
+}
+
+.well {
+  background-color: #f3f3f3;
+  padding: 20px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-top: 20px;
+}
+
+.well p {
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+.well strong {
+  color: #333;
+}
+
+h2 {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+h3 {
+  margin-top: 0px;
+  /* o incluso 5px si lo quieres más pegado */
+  font-weight: bold;
+}
+
+.btn-modal {
+  margin-top: 30px;
+  margin-bottom: 40px;
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 20px;
+  }
+
+  .container,
+  .breadcrumb {
+    margin: 0 20px;
+  }
+
+  #sesion-header {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 10px;
+  }
+}

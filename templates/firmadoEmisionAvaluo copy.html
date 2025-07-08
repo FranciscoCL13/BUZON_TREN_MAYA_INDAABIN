@@ -25,7 +25,7 @@
             </a>
 
             <div id="sesion-header">
-                <span id="usuarioRFC">USUARIO: USUARIO123</span>
+                <span id="usuarioRFC">USUARIO: {{ session['rfc'] }}</span>
                 <button class="btn btn-danger btn-sm" onclick="cerrarSesion()">Cerrar sesión</button>
             </div>
         </div>
@@ -295,6 +295,16 @@
             window.location.href = "/home_buzon";
         });
 
+    </script>
+        <script>
+        async function cerrarSesion() {
+            await fetch("/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ salir: true })
+            });
+            window.location.href = "/";
+        }
     </script>
     <!-- JS -->
     <script src="https://framework-gb.cdn.gob.mx/gm/v4/js/gobmx.js"></script>

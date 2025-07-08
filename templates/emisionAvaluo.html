@@ -32,7 +32,7 @@
                 </a>
 
                 <div id="sesion-header">
-                    <span id="usuarioRFC">USUARIO: USUARIO123</span>
+                    <span id="usuarioRFC">USUARIO: {{ session['rfc'] }}</span>
                     <button class="btn btn-danger btn-sm" onclick="cerrarSesion()">Cerrar sesión</button>
                 </div>
             </div>
@@ -66,11 +66,13 @@
 
         <div class="form-container">
             <div style="padding-left: 0%; text-align: right;">
-                <strong style="text-align: right;">Clave de solicitud de avalúo maestro (plataforma INDAABIN):</strong> {{ emisionAvaluo.clave }}
+                <strong style="text-align: right;">Clave de solicitud de avalúo maestro (plataforma INDAABIN):</strong>
+                {{ emisionAvaluo.clave }}
             </div> <br><br>
             <h2>Emisión del Avalúo Maestro</h2>
             <hr class="red" style="padding:0; margin-bottom:20px;"> <br><br>
-            <form id="emision" enctype="multipart/form-data">
+            <form id="emision" method="POST" action="/emisionAvaluo/guardar" enctype="multipart/form-data">
+
 
                 <input type="hidden" id="clave_solicitud" name="clave_solicitud" value="{{ emisionAvaluo.clave }}">
 
@@ -92,7 +94,8 @@
                 <div class="form-group">
                     <div class="field">
                         <label for="perito_avaluo">Nombre del perito que realizó el avalúo maestro:</label>
-                        <input type="text" id="perito_avaluo" name="perito_avaluo" placeholder="Nombre del perito" required>
+                        <input type="text" id="perito_avaluo" name="perito_avaluo" placeholder="Nombre del perito"
+                            required>
                     </div>
 
                     <div class="field">
@@ -123,6 +126,16 @@
                     <button type="submit" class="btn2 btn-primary">Continuar</button>
             </form>
         </div>
+        <script>
+            async function cerrarSesion() {
+                await fetch("/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ salir: true })
+                });
+                window.location.href = "/";
+            }
+        </script>
         <!-------------------------------------------------------JS's---------------------------------------------->
         <script src="https://framework-gb.cdn.gob.mx/gm/v4/js/gobmx.js"></script>
         <script src="{{ url_for('static', filename='js/emisionAvaluo.js') }}"></script>

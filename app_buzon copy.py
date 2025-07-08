@@ -104,13 +104,22 @@ def home():
 def buzon():
     db = get_db()
     cursor = db.execute("""
-        SELECT a.id, a.clave, a.fecha_firmada 
-        FROM avaluo_maestro a
-        LEFT JOIN emision_avaluo_v2 e ON a.clave = e.clave_solicitud
-        WHERE e.cadena_original IS NULL OR e.cadena_original = ''
-        ORDER BY a.fecha_firmada
+        SELECT 
+            a.id AS id,
+            a.clave AS clave,
+            a.fecha_firmada AS fecha_firmada,
+            e.id IS NOT NULL AS capturado,
+            e.cadena_original IS NOT NULL AND e.cadena_original != '' AS firmado
     """)
-    tareas = cursor.fetchall()
+    rows = cursor.fetchall()
+
+    tareas = [dict(row) for row in rows]  # ✅ fuerza a diccionario para que 'capturado' y 'firmado' existan
+
+    # Logs en consola
+    print("📌 Tareas encontradas:")
+    for t in tareas:
+        print(f"🔹 Clave: {t['clave']} | Capturado: {t['capturado']} | Firmado: {t['firmado']}")
+
     return render_template('buzon.html', tareas=tareas)
 
 @app.route('/emisionAvaluo/<clave_solicitud>')
@@ -123,12 +132,14 @@ def emisionAvaluo(clave_solicitud):
         return "Tarea no encontrada", 404
     return render_template('emisionAvaluo.html', emisionAvaluo=avaluo_maestro)
 
+
+#GUARDADO DE ARCHIVOS 
 @app.route('/emisionAvaluo/guardar', methods=['POST'])
 # @requierelogin
 def guardar_emision():
     try:
-        print("📥 FORM DATA:", dict(request.form))
-        print("📎 FILES:", request.files)
+        print("📥 [FORMULARIO RECIBIDO]", dict(request.form))
+        print("📎 [ARCHIVOS RECIBIDOS]", request.files)
 
         clave_solicitud = request.form.get('clave_solicitud')
         servidor = request.form.get('servidor')
@@ -139,29 +150,38 @@ def guardar_emision():
         uso_terreno = request.form.get('uso_terreno')
         archivo_avaluo = request.files.get('archivo_avaluo')
 
+        if not clave_solicitud:
+            print("❌ [ERROR] Falta clave_solicitud.")
+            return jsonify({"status": "error", "message": "Falta clave_solicitud"}), 400
+
         if not archivo_avaluo or archivo_avaluo.filename == '':
+            print("❌ [ERROR] No se subió ningún archivo.")
             return jsonify({"status": "error", "message": "No se subió ningún archivo"}), 400
 
         if not allowed_file(archivo_avaluo.filename):
+            print(f"❌ [ERROR] Archivo con extensión no permitida: {archivo_avaluo.filename}")
             return jsonify({"status": "error", "message": "Tipo de archivo no permitido"}), 400
 
         db = get_db()
         cursor = db.cursor()
 
-        # ✅ Validar si ya existe esa clave
+        # Validar existencia por clave
         cursor.execute("SELECT id FROM emision_avaluo_v2 WHERE clave_solicitud = ?", (clave_solicitud,))
         existente = cursor.fetchone()
         if existente:
+            print(f"⚠️ [CONFLICTO] Registro duplicado para clave_solicitud: {clave_solicitud}")
             return jsonify({
                 "status": "error",
                 "message": f"Ya existe un registro con la clave_solicitud '{clave_solicitud}'"
-            }), 409  # HTTP 409 Conflict
+            }), 409
 
-        # 📝 Guardar archivo
+        # Guardar archivo
         filename = secure_filename(archivo_avaluo.filename)
-        archivo_avaluo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        ruta_archivo = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        archivo_avaluo.save(ruta_archivo)
+        print(f"📂 [ARCHIVO GUARDADO] {ruta_archivo}")
 
-        # 🚀 Insertar nuevo registro
+        # Insertar nuevo registro
         cursor.execute("""
             INSERT INTO emision_avaluo_v2
             (clave_solicitud, servidor, valor_terreno, perito_avaluo, superficie_metros, clave_avaluo_maestro, uso_terreno, archivo_avaluo)
@@ -170,14 +190,16 @@ def guardar_emision():
         db.commit()
 
         registro_id = cursor.lastrowid
+        print(f"✅ [GUARDADO] Registro ID: {registro_id} - Clave: {clave_solicitud}")
         return jsonify({"status": "ok", "message": "Datos guardados correctamente", "id": registro_id})
 
     except Exception as e:
-        print("❌ ERROR:", str(e))
-        traceback.print_exc()
         db.rollback()
+        print("❌ [ERROR INTERNO]:", str(e))
+        traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 500
 
+## FIRMADO
 @app.route('/emisionAvaluo/firmado', methods=['POST'])
 # @requierelogin
 def firmado_emision_save():
@@ -239,10 +261,6 @@ def resumen_firma(clave_solicitud):
     if not registro:
         return "Registro no encontrado", 404
 
-    # Puedes pasar datos si quieres usarlos en el template, por ejemplo:
-    # return render_template('resumenFirma.html', registro=registro)
-
-    # Pero si prefieres seguir usando sessionStorage para mostrar datos, sólo envía la clave
     return render_template('resumenFirma.html', clave_solicitud=clave_solicitud)
 
 
@@ -255,28 +273,7 @@ def seguimientos():
     registros = cursor.fetchall()
     return render_template('seguimientos.html', registros=registros)
 
-# def crear_tabla_emision_avaluo():
-#     db = get_db()
-#     cursor = db.cursor()
-#     cursor.execute("""
-#     CREATE TABLE IF NOT EXISTS emision_avaluo (
-#         id INTEGER PRIMARY KEY AUTOINCREMENT,
-#         clave_solicitud TEXT UNIQUE,
-#         servidor TEXT NOT NULL,
-#         fuente REAL NOT NULL,
-#         costo TEXT NOT NULL,
-#         fecha_pago REAL NOT NULL,
-#         comprobante_numero TEXT NOT NULL,
-#         clc_numero TEXT NOT NULL,
-#         archivo_comprobante TEXT NOT NULL,
-#         usuario TEXT,
-#         firma_digital TEXT,
-#         fecha_firmada TEXT,
-#         cadena_original TEXT,
-#         fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-#     )
-#     """)
-#     db.commit()
+
 def crear_tabla_emision_avaluo():
     db = get_db()
     cursor = db.cursor()

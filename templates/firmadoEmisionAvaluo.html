@@ -33,34 +33,59 @@
         <!-- Breadcrumbs alineado con formulario -->
         <ol style="margin: auto;" class="breadcrumb">
             <li class="breadcrumb-item"><a href="/home_buzon"><i class="icon icon-home"></i></a></li>
+            <li class="breadcrumb-item"><a href="/seguimientos">Seguimientos</a></li>
             <li class="breadcrumb-item"><a href="/buzon">buzón de tareas</a></li>
 
             <li class="breadcrumb-item active" aria-current="page">Resumen emisión</li>
         </ol>
 
-        <!-- Paso 2: Resumen -->
-
-        <!-- OMITIDO: HEAD, LOGO, SESIÓN, BREADCRUMBS -->
-
-
         <div id="resumen">
             <h3>Emisión del Avalúo Maestro</h3>
             <hr class="red" style="padding:0; margin-bottom:20px;">
-            <p><strong>Clave de solicitud:</strong> <span id="res-clave-solicitud"></span></p>
-            <p><strong>Servidor:</strong> <span id="res-servidor"></span></p>
-            <p><strong>Valor terreno:</strong> <span id="res-valor-terreno"></span></p>
-            <p><strong>Perito avalúo:</strong> <span id="res-perito-avaluo"></span></p>
-            <p><strong>Superficie metros:</strong> <span id="res-superficie-metros"></span></p>
-            <p><strong>Clave avalúo maestro:</strong> <span id="res-clave-avaluo-maestro"></span></p>
-            <p><strong>Uso terreno:</strong> <span id="res-uso-terreno"></span></p>
-            <p><strong>Archivo avalúo:</strong> <span id="res-archivo-avaluo"></span></p>
+            <p><strong>Clave de solicitud:</strong> <span id="res-clave-solicitud">{{ emision.clave_solicitud }}</span>
+            </p>
+            <p><strong>Servidor:</strong> <span id="res-servidor">{{ emision.servidor }}</span></p>
+            <p><strong>Valor terreno:</strong> <span id="res-valor-terreno">{{ emision.valor_terreno }}</span></p>
+            <p><strong>Perito avalúo:</strong> <span id="res-perito-avaluo">{{ emision.perito_avaluo }}</span></p>
+            <p><strong>Superficie metros:</strong> <span id="res-superficie-metros">{{ emision.superficie_metros
+                    }}</span></p>
+            <p><strong>Clave avalúo maestro:</strong> <span id="res-clave-avaluo-maestro">{{
+                    emision.clave_avaluo_maestro }}</span></p>
+            <p><strong>Uso terreno:</strong> <span id="res-uso-terreno">{{ emision.uso_terreno }}</span></p>
+            <p><strong>Archivo avalúo:</strong>
+                <span id="res-archivo-avaluo">
+                    {% if emision.archivo_avaluo %}
+                    {% set nombre_archivo = emision.archivo_avaluo.split('/')[-1] %}
+                    <a href="/uploads/{{ emision.archivo_avaluo }}" target="_blank">{{ nombre_archivo }}</a>
+                    {% else %}
+                    No se ha cargado ningún archivo
+                    {% endif %}
+                </span>
+            </p>
+
         </div>
 
+        <!-- Inputs ocultos para asegurar datos al momento de firmar -->
+        <input type="hidden" id="clave_solicitud" value="{{ emision.clave_solicitud }}">
+        <input type="hidden" id="servidor" value="{{ emision.servidor }}">
+        <input type="hidden" id="valor_terreno" value="{{ emision.valor_terreno }}">
+        <input type="hidden" id="perito_avaluo" value="{{ emision.perito_avaluo }}">
+        <input type="hidden" id="superficie_metros" value="{{ emision.superficie_metros }}">
+        <input type="hidden" id="clave_avaluo_maestro" value="{{ emision.clave_avaluo_maestro }}">
+        <input type="hidden" id="uso_terreno" value="{{ emision.uso_terreno }}">
+        <input type="hidden" id="archivo_avaluo" value="{{ emision.archivo_avaluo }}"
+            data-hash="{{ emision.hash_archivo }}">
 
         <br>
         <div id="firma" style="margin-bottom: 30px;">
+            {% if not emision['firma_digital'] %}
             <button type="button" class="btn btn-primary" onclick="abrirModal()">Firmar</button>
+            {% else %}
+            <p><strong>Documento ya firmado el:</strong> {{ emision['fecha_firmada'] }}</p>
+            <p><strong>Firmante:</strong> {{ emision['nombre_firmante'] or emision['rfc_firmante'] }}</p>
+            {% endif %}
         </div>
+
 
         <!-- MODAL DE FIRMA -->
         <div id="modalFirma" class="modal" tabindex="-1" style="display:none;">
@@ -122,27 +147,16 @@
                 }
             }
 
-            // Leer datos de sessionStorage según nombres correctos y actuales
-            const claveSolicitud = sessionStorage.getItem("clave_solicitud") || "";
-            const servidor = sessionStorage.getItem("servidor") || "";
-            const valorTerreno = sessionStorage.getItem("valor_terreno") || "";
-            const peritoAvaluo = sessionStorage.getItem("perito_avaluo") || "";
-            const superficieMetros = sessionStorage.getItem("superficie_metros") || "";
-            const claveAvaluoMaestro = sessionStorage.getItem("clave_avaluo_maestro") || "";
-            const usoTerreno = sessionStorage.getItem("uso_terreno") || "";
-            const archivoAvaluo = sessionStorage.getItem("archivoNombre") || "";
-            const hashArchivo = sessionStorage.getItem("archivoHash") || "";
-
-
-        // Actualizar contenido visual de resumen
-        document.getElementById('res-clave-solicitud').textContent = claveSolicitud;
-        document.getElementById('res-servidor').textContent = servidor;
-        document.getElementById('res-valor-terreno').textContent = valorTerreno;
-        document.getElementById('res-perito-avaluo').textContent = peritoAvaluo;
-        document.getElementById('res-superficie-metros').textContent = superficieMetros;
-        document.getElementById('res-clave-avaluo-maestro').textContent = claveAvaluoMaestro;
-        document.getElementById('res-uso-terreno').textContent = usoTerreno;
-        document.getElementById('res-archivo-avaluo').textContent = archivoAvaluo;
+            // Leer los datos directamente del DOM (inputs ocultos)
+            const claveSolicitud = document.getElementById("clave_solicitud").value;
+            const servidor = document.getElementById("servidor").value;
+            const valorTerreno = document.getElementById("valor_terreno").value;
+            const peritoAvaluo = document.getElementById("perito_avaluo").value;
+            const superficieMetros = document.getElementById("superficie_metros").value;
+            const claveAvaluoMaestro = document.getElementById("clave_avaluo_maestro").value;
+            const usoTerreno = document.getElementById("uso_terreno").value;
+            const archivoAvaluo = document.getElementById("archivo_avaluo").value;
+            const hashArchivo = document.getElementById("archivo_avaluo").getAttribute("data-hash") || "";
 
             function arrayToString(buffer) {
                 return Array.from(new Uint8Array(buffer)).map(b => String.fromCharCode(b)).join('');
@@ -153,14 +167,23 @@
                     const certFile = document.getElementById("cert").files[0];
                     const keyFile = document.getElementById("key").files[0];
                     const password = document.getElementById("password").value;
+                    const aceptoCampos = document.getElementById("aceptoCampos").checked;
 
                     if (!certFile || !keyFile || !password) {
                         alert("Por favor, proporciona el certificado, la llave y la contraseña.");
                         return;
                     }
 
+                    if (!aceptoCampos) {
+                        alert("Debes aceptar que has revisado correctamente los campos y documentos.");
+                        return;
+                    }
+
                     const certBin = await certFile.arrayBuffer();
                     const keyBin = await keyFile.arrayBuffer();
+
+                    // Codificar certificado a base64 para enviar al backend
+                    const certBase64 = btoa(String.fromCharCode(...new Uint8Array(certBin)));
 
                     const fiel = credentials.Credential.create(
                         arrayToString(certBin),
@@ -174,37 +197,38 @@
                     const normaliza = (t) => t ? t.replace(/[\r\n]+/g, ' ').replace(/[–—]/g, '-').trim() : '';
                     const fechaISO = new Date().toISOString();
 
-                const cadena = [
-                    `ClaveSolicitud:"${normaliza(claveSolicitud)}"`,
-                    `Servidor:"${normaliza(servidor)}"`,
-                    `Fuente:"${normaliza(valorTerreno)}"`,
-                    `Costo:"${normaliza(peritoAvaluo)}"`,
-                    `FechaPago:"${normaliza(superficieMetros)}"`,
-                    `ComprobanteNumero:"${normaliza(claveAvaluoMaestro)}"`,
-                    `CLCNúmero:"${normaliza(usoTerreno)}"`,
-                    `Archivo:"${normaliza(archivoAvaluo)}"`,
-                    `HASH:"${hashArchivo}"`,
-                    `Fecha:"${fechaISO}"`,
-                    `RFC:"${rfcFirmante}"`
-                ].join(' | ');
+                    const cadena = [
+                        `ClaveSolicitud:"${normaliza(claveSolicitud)}"`,
+                        `Servidor:"${normaliza(servidor)}"`,
+                        `Fuente:"${normaliza(valorTerreno)}"`,
+                        `Costo:"${normaliza(peritoAvaluo)}"`,
+                        `FechaPago:"${normaliza(superficieMetros)}"`,
+                        `ComprobanteNumero:"${normaliza(claveAvaluoMaestro)}"`,
+                        `CLCNúmero:"${normaliza(usoTerreno)}"`,
+                        `Archivo:"${normaliza(archivoAvaluo)}"`,
+                        `HASH:"${hashArchivo}"`,
+                        `Fecha:"${fechaISO}"`,
+                        `RFC:"${rfcFirmante}"`
+                    ].join(' | ');
 
                     const firma = btoa(fiel.sign(cadena));
 
                     // Enviar datos al backend
-                const formData = new FormData();
-                formData.append("clave_solicitud", claveSolicitud);
-                formData.append("servidor", servidor);
-                formData.append("valor_terreno", valorTerreno);
-                formData.append("perito_avaluo", peritoAvaluo);
-                formData.append("superficie_metros", superficieMetros);
-                formData.append("clave_avaluo_maestro", claveAvaluoMaestro);
-                formData.append("uso_terreno", usoTerreno);
-                formData.append("archivo_avaluo", archivoAvaluo);
-                formData.append("rfc_firmante", rfcFirmante);
-                formData.append("firma_digital", firma);
-                formData.append("fecha_firmada", fechaISO);
-                formData.append("cadena_original", cadena);
-
+                    const formData = new FormData();
+                    formData.append("clave_solicitud", claveSolicitud);
+                    formData.append("servidor", servidor);
+                    formData.append("valor_terreno", valorTerreno);
+                    formData.append("perito_avaluo", peritoAvaluo);
+                    formData.append("superficie_metros", superficieMetros);
+                    formData.append("clave_avaluo_maestro", claveAvaluoMaestro);
+                    formData.append("uso_terreno", usoTerreno);
+                    formData.append("archivo_avaluo", archivoAvaluo);
+                    formData.append("rfc_firmante", rfcFirmante);
+                    formData.append("nombre_firmante", nombreFirmante);  // Enviar nombre firmante
+                    formData.append("firma_digital", firma);
+                    formData.append("fecha_firmada", fechaISO);
+                    formData.append("cadena_original", cadena);
+                    formData.append("certificado", certBase64); // Aquí enviamos el certificado en base64
 
                     const res = await fetch("/emisionAvaluo/firmado", {
                         method: "POST",
@@ -223,10 +247,32 @@
                     // Redirigir al resumen
                     window.location.href = "/resumen_firma/" + encodeURIComponent(claveSolicitud);
 
-
                 } catch (e) {
                     alert("Error al firmar: " + e.message);
                 }
+            }
+        </script>
+        <script>
+            // Al cargar la página, reemplazamos el historial con la misma URL
+            window.history.replaceState(null, '', window.location.href);
+
+            // Opcional: eliminamos el historial previo para que atrás no funcione
+            window.history.pushState(null, '', window.location.href);
+
+            // Escuchar eventos popstate (botón atrás)
+            window.addEventListener('popstate', function (event) {
+                // Siempre volvemos a poner la misma página para impedir retroceso
+                window.history.pushState(null, '', window.location.href);
+            });
+        </script>
+        <script>
+            async function cerrarSesion() {
+                await fetch("/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ salir: true })
+                });
+                window.location.href = "/";
             }
         </script>
 

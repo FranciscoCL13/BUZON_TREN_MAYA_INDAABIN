@@ -21,7 +21,7 @@
             </a>
 
             <div id="sesion-header">
-                <span id="usuarioRFC">USUARIO: USUARIO123</span>
+                <span id="usuarioRFC">USUARIO: {{ session['rfc'] }}</span>
                 <button class="btn btn-danger btn-sm" onclick="cerrarSesion()">Cerrar sesión</button>
             </div>
         </div>
@@ -31,6 +31,7 @@
         <!-- Breadcrumbs -->
         <ol class="breadcrumb" style="margin: auto;">
             <li class="breadcrumb-item"><a href="/home_buzon"><i class="icon icon-home"></i></a></li>
+            <li class="breadcrumb-item"><a href="/seguimientos">Seguimientos</a></li>
             <li class="breadcrumb-item"><a href="/buzon">Buzón de tareas</a></li>
             <li class="breadcrumb-item active" aria-current="page">Resumen de firma</li>
         </ol>
@@ -40,43 +41,43 @@
             <h3>Resumen de la Firma Electrónica</h3>
             <hr class="red" style="padding:0; margin-bottom:20px;">
 
-            <p><strong>RFC del firmante:</strong> <span id="final-rfc"></span></p>
-            <p><strong>Nombre del firmante:</strong> <span id="final-nombre"></span></p>
+            <p><strong>RFC del firmante:</strong>
+                {{ registro.rfc_firmante if registro.rfc_firmante else "(No disponible)" }}
+            </p>
+            <p><strong>Nombre del firmante:</strong>
+                <span id="nombreFirmante">
+                    {{ registro.nombre_firmante if registro.nombre_firmante else "(No disponible)" }}
+                </span>
+            </p>
 
             <p><strong>Cadena original firmada:</strong></p>
-            <pre id="cadena-firmada" style="white-space: pre-wrap; background-color: #f5f5f5; padding: 10px;"></pre>
+            <pre style="white-space: pre-wrap; background-color: #f5f5f5; padding: 10px;">
+{{ registro.cadena_original if registro.cadena_original else "(No disponible)" }}
+            </pre>
 
             <p><strong>Firma digital:</strong></p>
-            <pre id="firma-digital" style="white-space: pre-wrap; background-color: #f5f5f5; padding: 10px;"></pre>
+            <pre style="white-space: pre-wrap; background-color: #f5f5f5; padding: 10px;">
+{{ registro.firma_digital if registro.firma_digital else "(No disponible)" }}
+            </pre>
         </div>
 
         <br>
         <button class="btn btn-secondary" onclick="window.location.href='/home_buzon'">Volver al Home</button>
     </div>
 
-    <!-- Script para mostrar datos -->
+    <!-- NO PODER VOLVER ATRAS-->
     <script>
-        // Obtener desde sessionStorage
-        const rfc = sessionStorage.getItem("rfcFirmante") || "(No disponible)";
-        const nombre = sessionStorage.getItem("nombreFirmante") || "(No disponible)";
-        const cadena = sessionStorage.getItem("cadenaFirmada") || "(No disponible)";
-        const firma = sessionStorage.getItem("firmaDigital") || "(No disponible)";
+        // Si el backend no envió el nombre, usar sessionStorage (del firmado)
+        window.addEventListener('DOMContentLoaded', () => {
+            const nombreSpan = document.getElementById('nombreFirmante');
+            if (nombreSpan.textContent.trim() === '(No disponible)') {
+                const nombreFirmante = sessionStorage.getItem('nombreFirmante');
+                if (nombreFirmante) {
+                    nombreSpan.textContent = nombreFirmante;
+                }
+            }
+        });
 
-        // Mostrar en pantalla
-        document.getElementById("final-rfc").textContent = rfc;
-        document.getElementById("final-nombre").textContent = nombre;
-        document.getElementById("cadena-firmada").textContent = cadena;
-        document.getElementById("firma-digital").textContent = firma;
-
-        function cerrarSesion() {
-            // Limpiar sessionStorage si es necesario
-            sessionStorage.clear();
-            window.location.href = "/logout";
-        }
-
-
-    </script>
-    <script>
         // Al cargar la página, reemplazamos el historial con la misma URL
         window.history.replaceState(null, '', window.location.href);
 
@@ -88,6 +89,16 @@
             // Siempre volvemos a poner la misma página para impedir retroceso
             window.history.pushState(null, '', window.location.href);
         });
+
+        function cerrarSesion() {
+            fetch("/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ salir: true })
+            }).then(() => {
+                window.location.href = "/";
+            });
+        }
     </script>
 
 </body>
