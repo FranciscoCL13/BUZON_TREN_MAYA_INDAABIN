@@ -182,6 +182,7 @@ def calcular_hash_archivo(archivo):
 
 @app.route('/emisionAvaluo/guardar', methods=['POST'])
 def guardar_emision():
+    db = get_db()
     try:
         # 🔽 Obtención de datos del formulario
         clave_solicitud = request.form.get('clave_solicitud')
@@ -215,13 +216,6 @@ def guardar_emision():
         hash_archivo = calcular_hash_archivo(archivo_avaluo)
         print("🔑 Hash calculado:", hash_archivo)
 
-        # 🔽 Guardar archivo con nombre seguro
-        # filename = secure_filename(archivo_avaluo.filename)
-        # archivo_avaluo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
-
-       
-
         # 🔽 Guardar archivo con nombre seguro y UUID
         filename = secure_filename(archivo_avaluo.filename)
         oid = str(uuid.uuid4())
@@ -232,7 +226,6 @@ def guardar_emision():
 
         # Guardar en DB el path relativo o nombre (para luego encontrarlo)
         archivo_guardado = f"{oid}/{filename}"
-
 
         # 🔽 Log de todos los datos (debug)
         print("🔎 Datos a guardar:")
@@ -246,11 +239,7 @@ def guardar_emision():
         print(f"archivo: {filename}")
         print(f"hash: {hash_archivo}")
 
-        # 🔽 Insertar en base de datos
-        db = get_db()
         cursor = db.cursor()
-        # Guardar en DB el valor con carpeta + nombre
-        archivo_guardado = f"{oid}/{filename}"
 
         # Verificar si ya existe
         cursor.execute("SELECT id FROM emision_avaluo WHERE clave_solicitud = ?", (clave_solicitud,))
@@ -272,7 +261,9 @@ def guardar_emision():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
+
 @app.route('/emisionAvaluo/firmado', methods=['POST'])
+@login_required
 def firmado_emision_save():
     try:
         print("📥 POST recibido en /emisionAvaluo/firmado")
@@ -282,47 +273,48 @@ def firmado_emision_save():
         firma_digital = request.form.get('firma_digital')
         fecha_firmada = request.form.get('fecha_firmada')
         cadena_original = request.form.get('cadena_original')
-        certificado_base64 = request.form.get('certificado')  # Nuevo
         nombre_firmante = request.form.get('nombre_firmante')
 
-
-        # Debug de todos los campos
         print("🧾 Datos recibidos:")
         print(f"🔑 clave_solicitud: {clave_solicitud}")
         print(f"👤 rfc_firmante: {rfc_firmante}")
-        print(f"🖋️ firma_digital: {firma_digital}")
+        print(f"🖋️ firma_digital: {'Sí' if firma_digital else 'No'}")
         print(f"📅 fecha_firmada: {fecha_firmada}")
         print(f"📜 cadena_original: {cadena_original}")
-        print(f"📄 certificado_base64: {'Sí' if certificado_base64 else 'No'}")
-        print("📄 certificado_base64 length:", len(certificado_base64) if certificado_base64 else 0)
+        print(f"👤 nombre_firmante: {nombre_firmante}")
 
-
-        # Validación
-        if not all([clave_solicitud, rfc_firmante, firma_digital, fecha_firmada, cadena_original]):
-            print("❌ Validación fallida: Faltan uno o más campos obligatorios")
-            return jsonify({"status": "error", "message": "Faltan datos para guardar la firma"}), 400
-
+        # Validar solo que existan los campos mínimos
+        if not all([clave_solicitud, rfc_firmante, firma_digital]):
+            msg = "Faltan datos obligatorios para guardar la firma."
+            print(f"❌ {msg}")
+            return jsonify({"status": "error", "message": msg}), 400
 
         db = get_db()
         cursor = db.cursor()
+
+        # Confirmar que el registro existe para actualizar
+        cursor.execute("SELECT id FROM emision_avaluo WHERE clave_solicitud = ?", (clave_solicitud,))
+        registro = cursor.fetchone()
+        if not registro:
+            msg = "No se encontró el registro para actualizar la firma."
+            print(f"⚠️ {msg}")
+            return jsonify({"status": "error", "message": msg}), 404
+
+        # Actualizar registro con la firma y datos asociados
         cursor.execute("""
             UPDATE emision_avaluo
             SET rfc_firmante = ?, firma_digital = ?, fecha_firmada = ?, cadena_original = ?, nombre_firmante = ?
             WHERE clave_solicitud = ?
         """, (rfc_firmante, firma_digital, fecha_firmada, cadena_original, nombre_firmante, clave_solicitud))
-
-        if cursor.rowcount == 0:
-            print("⚠️ No se encontró el registro para actualizar")
-            return jsonify({"status": "error", "message": "Registro no encontrado para actualizar firma"}), 404
-
         db.commit()
+
         print("✅ Firma guardada correctamente")
         return jsonify({"status": "ok", "message": "Firma guardada correctamente"})
 
     except Exception as e:
         db.rollback()
-        print(f"🔥 Error inesperado al guardar firma: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        print("🔥 Error inesperado:", traceback.format_exc())
+        return jsonify({"status": "error", "message": "Error interno del servidor"}), 500
 
 
 @app.route('/emisionAvaluo/firmado/<clave_solicitud>')
@@ -357,7 +349,7 @@ def resumen_firma(clave_solicitud):
 @login_required
 def seguimientos():
     db = get_db()
-    cursor = db.execute('SELECT * FROM emision_avaluo ORDER BY ID')
+    cursor = db.execute('SELECT * FROM emision_avaluo ORDER BY ID DESC')
     registros = cursor.fetchall()
     return render_template('seguimientos.html', registros=registros)
 
@@ -403,6 +395,53 @@ def uploads(filename):
     file = os.path.basename(safe_path)
 
     return send_from_directory(directory, file)
+
+
+
+# NUEVO
+
+@app.route('/api/cadena_original/<clave_solicitud>', methods=['GET'])
+@login_required
+def obtener_cadena_original(clave_solicitud):
+    try:
+        db = get_db()
+        cursor = db.execute("SELECT * FROM emision_avaluo WHERE clave_solicitud = ?", (clave_solicitud,))
+        registro = cursor.fetchone()
+
+        if not registro:
+            return jsonify({"error": "No se encontró el registro"}), 404
+
+        # Normalizar texto para evitar errores de salto de línea o guiones especiales
+        def normaliza(texto):
+            if texto is None:
+                return ""
+            return str(texto).replace('\n', ' ').replace('\r', '').replace("–", "-").replace("—", "-").strip()
+
+        fecha_iso = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())  # UTC ISO
+
+        cadena = [
+            f'ClaveSolicitud:"{normaliza(registro["clave_solicitud"])}"',
+            f'Servidor:"{normaliza(registro["servidor"])}"',
+            f'Fuente:"{normaliza(registro["valor_terreno"])}"',
+            f'Costo:"{normaliza(registro["perito_avaluo"])}"',
+            f'FechaPago:"{normaliza(registro["superficie_metros"])}"',
+            f'ComprobanteNumero:"{normaliza(registro["clave_avaluo_maestro"])}"',
+            f'CLCNúmero:"{normaliza(registro["uso_terreno"])}"',
+            f'Archivo:"{normaliza(registro["archivo_avaluo"])}"',
+            f'HASH:"{normaliza(registro["hash_archivo"])}"',
+            f'Fecha:"{fecha_iso}"',
+            f'RFC:"{session["rfc"]}"'
+        ]
+
+        cadena_original = " | ".join(cadena).strip()
+        print("📜 Cadena original generada (backend):", cadena_original)
+
+        return jsonify({"cadena_original": cadena_original})
+
+    except Exception as e:
+        print("🔥 Error al generar cadena original:", traceback.format_exc())
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     with app.app_context():

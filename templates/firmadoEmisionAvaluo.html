@@ -81,7 +81,7 @@
             {% if not emision['firma_digital'] %}
             <button type="button" class="btn btn-primary" onclick="abrirModal()">Firmar</button>
             {% else %}
-            <p><strong>Documento ya firmado el:</strong> {{ emision['fecha_firmada'] }}</p>
+            <p><strong>Documento firmado el:</strong> {{ emision['fecha_firmada'] }}</p>
             <p><strong>Firmante:</strong> {{ emision['nombre_firmante'] or emision['rfc_firmante'] }}</p>
             {% endif %}
         </div>
@@ -147,7 +147,7 @@
                 }
             }
 
-            // Leer los datos directamente del DOM (inputs ocultos)
+            // Leer los datos directamente del DOM
             const claveSolicitud = document.getElementById("clave_solicitud").value;
             const servidor = document.getElementById("servidor").value;
             const valorTerreno = document.getElementById("valor_terreno").value;
@@ -170,20 +170,29 @@
                     const aceptoCampos = document.getElementById("aceptoCampos").checked;
 
                     if (!certFile || !keyFile || !password) {
-                        alert("Por favor, proporciona el certificado, la llave y la contraseña.");
+                        alert("Por favor, proporciona certificado, llave y contraseña.");
                         return;
                     }
 
                     if (!aceptoCampos) {
-                        alert("Debes aceptar que has revisado correctamente los campos y documentos.");
+                        alert("Debes aceptar revisar los campos.");
+                        return;
+                    }
+
+                    const cadenaResponse = await fetch(`/api/cadena_original/${encodeURIComponent(claveSolicitud)}`);
+                    const { cadena_original } = await cadenaResponse.json();
+
+                    if (!cadena_original) {
+                        alert("No se pudo obtener la cadena original.");
                         return;
                     }
 
                     const certBin = await certFile.arrayBuffer();
                     const keyBin = await keyFile.arrayBuffer();
 
-                    // Codificar certificado a base64 para enviar al backend
-                    const certBase64 = btoa(String.fromCharCode(...new Uint8Array(certBin)));
+                    function arrayToString(buffer) {
+                        return Array.from(new Uint8Array(buffer)).map(b => String.fromCharCode(b)).join('');
+                    }
 
                     const fiel = credentials.Credential.create(
                         arrayToString(certBin),
@@ -193,65 +202,38 @@
 
                     const rfcFirmante = fiel.rfc();
                     const nombreFirmante = fiel.legalName();
+                    const firma = btoa(fiel.sign(cadena_original));
 
-                    const normaliza = (t) => t ? t.replace(/[\r\n]+/g, ' ').replace(/[–—]/g, '-').trim() : '';
-                    const fechaISO = new Date().toISOString();
-
-                    const cadena = [
-                        `ClaveSolicitud:"${normaliza(claveSolicitud)}"`,
-                        `Servidor:"${normaliza(servidor)}"`,
-                        `Fuente:"${normaliza(valorTerreno)}"`,
-                        `Costo:"${normaliza(peritoAvaluo)}"`,
-                        `FechaPago:"${normaliza(superficieMetros)}"`,
-                        `ComprobanteNumero:"${normaliza(claveAvaluoMaestro)}"`,
-                        `CLCNúmero:"${normaliza(usoTerreno)}"`,
-                        `Archivo:"${normaliza(archivoAvaluo)}"`,
-                        `HASH:"${hashArchivo}"`,
-                        `Fecha:"${fechaISO}"`,
-                        `RFC:"${rfcFirmante}"`
-                    ].join(' | ');
-
-                    const firma = btoa(fiel.sign(cadena));
-
-                    // Enviar datos al backend
                     const formData = new FormData();
                     formData.append("clave_solicitud", claveSolicitud);
-                    formData.append("servidor", servidor);
-                    formData.append("valor_terreno", valorTerreno);
-                    formData.append("perito_avaluo", peritoAvaluo);
-                    formData.append("superficie_metros", superficieMetros);
-                    formData.append("clave_avaluo_maestro", claveAvaluoMaestro);
-                    formData.append("uso_terreno", usoTerreno);
-                    formData.append("archivo_avaluo", archivoAvaluo);
                     formData.append("rfc_firmante", rfcFirmante);
-                    formData.append("nombre_firmante", nombreFirmante);  // Enviar nombre firmante
+                    formData.append("nombre_firmante", nombreFirmante);
                     formData.append("firma_digital", firma);
-                    formData.append("fecha_firmada", fechaISO);
-                    formData.append("cadena_original", cadena);
-                    formData.append("certificado", certBase64); // Aquí enviamos el certificado en base64
+                    formData.append("cadena_original", cadena_original);
+                    formData.append("fecha_firmada", new Date().toISOString());
 
                     const res = await fetch("/emisionAvaluo/firmado", {
                         method: "POST",
                         body: formData
                     });
 
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.message);
+                    if (!res.ok) {
+                        const data = await res.json();
+                        throw new Error(data.message || "Error al guardar firma");
+                    }
 
-                    // Guardar datos firmados para el resumen
-                    sessionStorage.setItem("rfcFirmante", rfcFirmante);
-                    sessionStorage.setItem("nombreFirmante", nombreFirmante);
-                    sessionStorage.setItem("cadenaFirmada", cadena);
-                    sessionStorage.setItem("firmaDigital", firma);
+                    alert("Firma enviada correctamente.");
 
-                    // Redirigir al resumen
+                    // Redirigir o lo que necesites
                     window.location.href = "/resumen_firma/" + encodeURIComponent(claveSolicitud);
 
                 } catch (e) {
-                    alert("Error al firmar: " + e.message);
+                    alert("Error en la firma: " + e.message);
                 }
             }
+
         </script>
+
         <script>
             // Al cargar la página, reemplazamos el historial con la misma URL
             window.history.replaceState(null, '', window.location.href);
