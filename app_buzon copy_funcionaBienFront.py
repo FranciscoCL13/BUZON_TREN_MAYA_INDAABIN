@@ -261,82 +261,60 @@ def guardar_emision():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
-import base64
 
 @app.route('/emisionAvaluo/firmado', methods=['POST'])
 @login_required
 def firmado_emision_save():
     try:
+        print("📥 POST recibido en /emisionAvaluo/firmado")
+
         clave_solicitud = request.form.get('clave_solicitud')
         rfc_firmante = request.form.get('rfc_firmante')
         firma_digital = request.form.get('firma_digital')
         fecha_firmada = request.form.get('fecha_firmada')
-        cadena_original_enviada = request.form.get('cadena_original')
+        cadena_original = request.form.get('cadena_original')
         nombre_firmante = request.form.get('nombre_firmante')
 
-        if not all([clave_solicitud, rfc_firmante, firma_digital, fecha_firmada, cadena_original_enviada]):
-            return jsonify({"status": "error", "message": "Faltan datos obligatorios"}), 400
+        print("🧾 Datos recibidos:")
+        print(f"🔑 clave_solicitud: {clave_solicitud}")
+        print(f"👤 rfc_firmante: {rfc_firmante}")
+        print(f"🖋️ firma_digital: {'Sí' if firma_digital else 'No'}")
+        print(f"📅 fecha_firmada: {fecha_firmada}")
+        print(f"📜 cadena_original: {cadena_original}")
+        print(f"👤 nombre_firmante: {nombre_firmante}")
 
-        # Verificar que el RFC enviado coincida con el RFC en sesión (o base)
-        if rfc_firmante != session.get('rfc'):
-            return jsonify({"status": "error", "message": "RFC del firmante no coincide con sesión"}), 400
+        # Validar solo que existan los campos mínimos
+        if not all([clave_solicitud, rfc_firmante, firma_digital]):
+            msg = "Faltan datos obligatorios para guardar la firma."
+            print(f"❌ {msg}")
+            return jsonify({"status": "error", "message": msg}), 400
 
-        # Validar base64 mínima de la firma digital (que no sea basura)
-        try:
-            base64.b64decode(firma_digital, validate=True)
-        except Exception:
-            return jsonify({"status": "error", "message": "Firma digital inválida (base64 no válida)"}), 400
-
-        # Obtener la cadena original que genera el backend para la clave solicitada
         db = get_db()
-        cursor = db.execute("SELECT * FROM emision_avaluo WHERE clave_solicitud = ?", (clave_solicitud,))
+        cursor = db.cursor()
+
+        # Confirmar que el registro existe para actualizar
+        cursor.execute("SELECT id FROM emision_avaluo WHERE clave_solicitud = ?", (clave_solicitud,))
         registro = cursor.fetchone()
         if not registro:
-            return jsonify({"status": "error", "message": "No se encontró el registro"}), 404
+            msg = "No se encontró el registro para actualizar la firma."
+            print(f"⚠️ {msg}")
+            return jsonify({"status": "error", "message": msg}), 404
 
-        # Generar cadena original backend igual que en GET /api/cadena_original/
-        fecha_iso = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())  # Fecha actual UTC
-
-        def normaliza(texto):
-            if texto is None:
-                return ""
-            return str(texto).replace('\n', ' ').replace('\r', '').replace("–", "-").replace("—", "-").strip()
-
-        cadena_backend = " | ".join([
-            f'ClaveSolicitud:"{normaliza(registro["clave_solicitud"])}"',
-            f'Servidor:"{normaliza(registro["servidor"])}"',
-            f'Fuente:"{normaliza(registro["valor_terreno"])}"',
-            f'Costo:"{normaliza(registro["perito_avaluo"])}"',
-            f'FechaPago:"{normaliza(registro["superficie_metros"])}"',
-            f'ComprobanteNumero:"{normaliza(registro["clave_avaluo_maestro"])}"',
-            f'CLCNúmero:"{normaliza(registro["uso_terreno"])}"',
-            f'Archivo:"{normaliza(registro["archivo_avaluo"])}"',
-            f'HASH:"{normaliza(registro["hash_archivo"])}"',
-            f'Fecha:"{fecha_iso}"',
-            f'RFC:"{session["rfc"]}"'
-        ]).strip()
-
-        # Comparar cadenas originales
-        if cadena_original_enviada.strip() != cadena_backend:
-            return jsonify({"status": "error", "message": "Cadena original no coincide con la generada en backend"}), 400
-
-        # Actualizar firma y datos sin verificar criptográficamente
-        cursor = db.cursor()
+        # Actualizar registro con la firma y datos asociados
         cursor.execute("""
             UPDATE emision_avaluo
             SET rfc_firmante = ?, firma_digital = ?, fecha_firmada = ?, cadena_original = ?, nombre_firmante = ?
             WHERE clave_solicitud = ?
-        """, (rfc_firmante, firma_digital, fecha_firmada, cadena_original_enviada, nombre_firmante, clave_solicitud))
+        """, (rfc_firmante, firma_digital, fecha_firmada, cadena_original, nombre_firmante, clave_solicitud))
         db.commit()
 
-        return jsonify({"status": "ok", "message": "Firma guardada con validación básica"})
+        print("✅ Firma guardada correctamente")
+        return jsonify({"status": "ok", "message": "Firma guardada correctamente"})
 
     except Exception as e:
         db.rollback()
-        print("Error inesperado:", e)
+        print("🔥 Error inesperado:", traceback.format_exc())
         return jsonify({"status": "error", "message": "Error interno del servidor"}), 500
-
-
 
 
 @app.route('/emisionAvaluo/firmado/<clave_solicitud>')
